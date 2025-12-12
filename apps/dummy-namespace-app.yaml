@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/mmayeras/gitops-tests.git
-    targetRevision: main
+    targetRevision: dev
     path: manifests/dummy-namespace
   destination:
     server: https://kubernetes.default.svc
