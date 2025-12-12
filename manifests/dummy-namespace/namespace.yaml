@@ -1,13 +1,14 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dummy-namespace
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: dummy-namespace
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    openshift.io/sa.scc.uid-range: "123456789/1"
+#---
+#apiVersion: v1
+#kind: Namespace
+#metadata:
+#  name: dummy-namespace
+#  annotations:
+#    argocd.argoproj.io/hook: PostSync
+#    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+#    openshift.io/sa.scc.uid-range: "123456789/1"
