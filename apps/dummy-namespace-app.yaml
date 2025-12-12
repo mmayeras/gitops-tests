@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dummy-namespace
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mmayeras/gitops-tests.git
+    targetRevision: main
+    path: manifests/dummy-namespace
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - RespectIgnoreDifferences=true
+    ignoreDifferences:
+    - group: ""
+      kind: Namespace
+      name: dummy-namespace
+      jsonPointers:
+      - /metadata/annotations/openshift.io~1sa.scc.mcs
+

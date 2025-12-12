@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dummy-namespace
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: configure-namespace-uid
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      serviceAccountName: openshift-gitops-argocd-application-controller
+      restartPolicy: Never
+      containers:
+      - name: patch-uid
+        image: registry.redhat.io/openshift4/ose-cli:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -eo pipefail
+          
+          NS="dummy-namespace"
+          MAX_ATTEMPTS=30
+          
+          echo "Waiting for namespace to be fully created..."
+          until oc get namespace "$NS" &>/dev/null; do
+            echo "Namespace not found yet, waiting..."
+            sleep 1
+          done
+          
+          echo "Waiting for OpenShift to generate MCS label..."
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            MCS=$(oc get namespace "$NS" -o jsonpath='{.metadata.annotations.openshift\.io/sa\.scc\.mcs}' 2>/dev/null || echo "")
+            
+            if [ -n "$MCS" ] && [ "$MCS" != "null" ]; then
+              echo "✓ MCS label generated: $MCS"
+              break
+            fi
+            
+            if [ $i -eq $MAX_ATTEMPTS ]; then
+              echo "ERROR: MCS label not generated after ${MAX_ATTEMPTS} attempts"
+              exit 1
+            fi
+            
+            echo "Attempt $i/$MAX_ATTEMPTS: Waiting for MCS..."
+            sleep 2
+          done
+          
+          echo "Applying custom UID range..."
+          oc annotate namespace "$NS" \
+            "openshift.io/sa.scc.uid-range=12345678/1" \
+            --overwrite
+          
+          echo "✓ Configuration complete!"
+          echo "Final annotations:"
+          oc get namespace "$NS" -o jsonpath='{.metadata.annotations}' 
