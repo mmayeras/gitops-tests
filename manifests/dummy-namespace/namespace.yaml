@@ -10,4 +10,4 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    openshift.io/sa.scc.uid-range: "12345678/1"
+    openshift.io/sa.scc.uid-range: "123456789/1"
